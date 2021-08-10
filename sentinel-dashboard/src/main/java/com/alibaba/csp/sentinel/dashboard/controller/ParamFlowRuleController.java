@@ -112,7 +112,15 @@ public class ParamFlowRuleController {
 //                .thenApply(repository::saveAll)
 //                .thenApply(Result::ofSuccess)
 //                .get();
-            List<ParamFlowRuleEntity> rules = ruleProvider.getRules(app);;
+            List<ParamFlowRuleEntity> rules = ruleProvider.getRules(app);
+            if (rules != null && !rules.isEmpty()) {
+                for (ParamFlowRuleEntity entity : rules) {
+                    entity.setApp(app);
+                    if (entity.getClusterConfig() != null && entity.getClusterConfig().getFlowId() != null) {
+                        entity.setId(entity.getClusterConfig().getFlowId());
+                    }
+                }
+            }
             rules = repository.saveAll(rules);
             return Result.ofSuccess(rules);
         } catch (ExecutionException ex) {

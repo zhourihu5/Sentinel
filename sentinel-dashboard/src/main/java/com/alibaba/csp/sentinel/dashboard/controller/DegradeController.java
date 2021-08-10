@@ -84,7 +84,15 @@ public class DegradeController {
         }
         try {
 //            List<DegradeRuleEntity> rules = sentinelApiClient.fetchDegradeRuleOfMachine(app, ip, port);
-            List<DegradeRuleEntity> rules = ruleProvider.getRules(app);;
+            List<DegradeRuleEntity> rules = ruleProvider.getRules(app);
+            if (rules != null && !rules.isEmpty()) {
+                for (DegradeRuleEntity entity : rules) {
+                    entity.setApp(app);
+//                    if (entity.getClusterConfig() != null && entity.getClusterConfig().getFlowId() != null) {
+//                        entity.setId(entity.getClusterConfig().getFlowId());
+//                    }
+                }
+            }
             rules = repository.saveAll(rules);
             return Result.ofSuccess(rules);
         } catch (Throwable throwable) {

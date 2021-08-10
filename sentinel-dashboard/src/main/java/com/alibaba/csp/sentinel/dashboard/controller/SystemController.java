@@ -85,6 +85,14 @@ public class SystemController {
         try {
 //            List<SystemRuleEntity> rules = sentinelApiClient.fetchSystemRuleOfMachine(app, ip, port);
             List<SystemRuleEntity> rules = ruleProvider.getRules(app);
+            if (rules != null && !rules.isEmpty()) {
+                for (SystemRuleEntity entity : rules) {
+                    entity.setApp(app);
+//                    if (entity.getClusterConfig() != null && entity.getClusterConfig().getFlowId() != null) {
+//                        entity.setId(entity.getClusterConfig().getFlowId());
+//                    }
+                }
+            }
             rules = repository.saveAll(rules);
             return Result.ofSuccess(rules);
         } catch (Throwable throwable) {
