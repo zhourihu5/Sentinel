@@ -76,12 +76,12 @@ public class DegradeController {
         if (StringUtil.isEmpty(app)) {
             return Result.ofFail(-1, "app can't be null or empty");
         }
-        if (StringUtil.isEmpty(ip)) {
-            return Result.ofFail(-1, "ip can't be null or empty");
-        }
-        if (port == null) {
-            return Result.ofFail(-1, "port can't be null");
-        }
+//        if (StringUtil.isEmpty(ip)) {
+//            return Result.ofFail(-1, "ip can't be null or empty");
+//        }
+//        if (port == null) {
+//            return Result.ofFail(-1, "port can't be null");
+//        }
         try {
 //            List<DegradeRuleEntity> rules = sentinelApiClient.fetchDegradeRuleOfMachine(app, ip, port);
             List<DegradeRuleEntity> rules = ruleProvider.getRules(app);
@@ -208,15 +208,15 @@ public class DegradeController {
         if (StringUtil.isBlank(entity.getApp())) {
             return Result.ofFail(-1, "app can't be blank");
         }
-        if (StringUtil.isBlank(entity.getIp())) {
-            return Result.ofFail(-1, "ip can't be null or empty");
-        }
-        if (entity.getPort() == null || entity.getPort() <= 0) {
-            return Result.ofFail(-1, "invalid port: " + entity.getPort());
-        }
-        if (StringUtil.isBlank(entity.getLimitApp())) {
-            return Result.ofFail(-1, "limitApp can't be null or empty");
-        }
+//        if (StringUtil.isBlank(entity.getIp())) {
+//            return Result.ofFail(-1, "ip can't be null or empty");
+//        }
+//        if (entity.getPort() == null || entity.getPort() <= 0) {
+//            return Result.ofFail(-1, "invalid port: " + entity.getPort());
+//        }
+//        if (StringUtil.isBlank(entity.getLimitApp())) {
+//            return Result.ofFail(-1, "limitApp can't be null or empty");
+//        }
         if (StringUtil.isBlank(entity.getResource())) {
             return Result.ofFail(-1, "resource can't be null or empty");
         }

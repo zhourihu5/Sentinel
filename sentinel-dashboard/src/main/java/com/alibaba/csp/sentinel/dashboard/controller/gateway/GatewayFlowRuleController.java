@@ -21,16 +21,20 @@ import com.alibaba.csp.sentinel.dashboard.auth.AuthService;
 import com.alibaba.csp.sentinel.dashboard.client.SentinelApiClient;
 import com.alibaba.csp.sentinel.dashboard.datasource.entity.gateway.GatewayFlowRuleEntity;
 import com.alibaba.csp.sentinel.dashboard.datasource.entity.gateway.GatewayParamFlowItemEntity;
+import com.alibaba.csp.sentinel.dashboard.datasource.entity.rule.FlowRuleEntity;
 import com.alibaba.csp.sentinel.dashboard.discovery.MachineInfo;
 import com.alibaba.csp.sentinel.dashboard.domain.Result;
 import com.alibaba.csp.sentinel.dashboard.domain.vo.gateway.rule.AddFlowRuleReqVo;
 import com.alibaba.csp.sentinel.dashboard.domain.vo.gateway.rule.GatewayParamFlowItemVo;
 import com.alibaba.csp.sentinel.dashboard.domain.vo.gateway.rule.UpdateFlowRuleReqVo;
 import com.alibaba.csp.sentinel.dashboard.repository.gateway.InMemGatewayFlowRuleStore;
+import com.alibaba.csp.sentinel.dashboard.rule.DynamicRuleProvider;
+import com.alibaba.csp.sentinel.dashboard.rule.DynamicRulePublisher;
 import com.alibaba.csp.sentinel.util.StringUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Arrays;
@@ -59,6 +63,13 @@ public class GatewayFlowRuleController {
     @Autowired
     private SentinelApiClient sentinelApiClient;
 
+    @Autowired
+    @Qualifier("gatewayFlowRuleNacosProvider")
+    private DynamicRuleProvider<List<GatewayFlowRuleEntity>> ruleProvider;
+    @Autowired
+    @Qualifier("gatewayFlowRuleNacosPublisher")
+    private DynamicRulePublisher<List<GatewayFlowRuleEntity>> rulePublisher;
+
     @GetMapping("/list.json")
     @AuthAction(AuthService.PrivilegeType.READ_RULE)
     public Result<List<GatewayFlowRuleEntity>> queryFlowRules(String app, String ip, Integer port) {
@@ -66,15 +77,24 @@ public class GatewayFlowRuleController {
         if (StringUtil.isEmpty(app)) {
             return Result.ofFail(-1, "app can't be null or empty");
         }
-        if (StringUtil.isEmpty(ip)) {
-            return Result.ofFail(-1, "ip can't be null or empty");
-        }
-        if (port == null) {
-            return Result.ofFail(-1, "port can't be null");
-        }
+//        if (StringUtil.isEmpty(ip)) {
+//            return Result.ofFail(-1, "ip can't be null or empty");
+//        }
+//        if (port == null) {
+//            return Result.ofFail(-1, "port can't be null");
+//        }
 
         try {
-            List<GatewayFlowRuleEntity> rules = sentinelApiClient.fetchGatewayFlowRules(app, ip, port).get();
+//            List<GatewayFlowRuleEntity> rules = sentinelApiClient.fetchGatewayFlowRules(app, ip, port).get();
+            List<GatewayFlowRuleEntity> rules =ruleProvider.getRules(app);
+            if (rules != null && !rules.isEmpty()) {
+                for (GatewayFlowRuleEntity entity : rules) {
+                    entity.setApp(app);
+//                    if (entity.getClusterConfig() != null && entity.getClusterConfig().getFlowId() != null) {
+//                        entity.setId(entity.getClusterConfig().getFlowId());
+//                    }
+                }
+            }
             repository.saveAll(rules);
             return Result.ofSuccess(rules);
         } catch (Throwable throwable) {
@@ -96,16 +116,16 @@ public class GatewayFlowRuleController {
         entity.setApp(app.trim());
 
         String ip = reqVo.getIp();
-        if (StringUtil.isBlank(ip)) {
-            return Result.ofFail(-1, "ip can't be null or empty");
-        }
-        entity.setIp(ip.trim());
-
+//        if (StringUtil.isBlank(ip)) {
+//            return Result.ofFail(-1, "ip can't be null or empty");
+//        }
+//        entity.setIp(ip.trim());
+//
         Integer port = reqVo.getPort();
-        if (port == null) {
-            return Result.ofFail(-1, "port can't be null");
-        }
-        entity.setPort(port);
+//        if (port == null) {
+//            return Result.ofFail(-1, "port can't be null");
+//        }
+//        entity.setPort(port);
 
         // API类型, Route ID或API分组
         Integer resourceMode = reqVo.getResourceMode();
@@ -425,7 +445,15 @@ public class GatewayFlowRuleController {
     }
 
     private boolean publishRules(String app, String ip, Integer port) {
-        List<GatewayFlowRuleEntity> rules = repository.findAllByMachine(MachineInfo.of(app, ip, port));
-        return sentinelApiClient.modifyGatewayFlowRules(app, ip, port, rules);
+//        List<GatewayFlowRuleEntity> rules = repository.findAllByMachine(MachineInfo.of(app, ip, port));
+//        return sentinelApiClient.modifyGatewayFlowRules(app, ip, port, rules);
+        List<GatewayFlowRuleEntity> rules = repository.findAllByApp(app);
+        try {
+            rulePublisher.publish(app, rules);
+        } catch (Exception e) {
+            logger.error("publish gateway flow rules fail",e);
+            return false;
+        }
+        return true;
     }
 }
