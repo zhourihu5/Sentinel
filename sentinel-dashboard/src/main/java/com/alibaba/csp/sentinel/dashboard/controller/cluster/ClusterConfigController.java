@@ -21,7 +21,11 @@ import java.util.concurrent.ExecutionException;
 
 import com.alibaba.csp.sentinel.cluster.ClusterStateManager;
 import com.alibaba.csp.sentinel.dashboard.client.CommandNotFoundException;
+import com.alibaba.csp.sentinel.dashboard.datasource.entity.gateway.GatewayFlowRuleEntity;
 import com.alibaba.csp.sentinel.dashboard.discovery.AppManagement;
+import com.alibaba.csp.sentinel.dashboard.domain.cluster.config.ClusterClientConfig;
+import com.alibaba.csp.sentinel.dashboard.rule.DynamicRuleProvider;
+import com.alibaba.csp.sentinel.dashboard.rule.DynamicRulePublisher;
 import com.alibaba.csp.sentinel.util.StringUtil;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
@@ -41,6 +45,7 @@ import com.alibaba.csp.sentinel.dashboard.domain.Result;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -61,6 +66,12 @@ public class ClusterConfigController {
 
     private final SentinelVersion version140 = new SentinelVersion().setMajorVersion(1).setMinorVersion(4);
 
+//    @Autowired
+//    @Qualifier("clusterClientConfigNacosProvider")
+//    private DynamicRuleProvider<ClusterClientConfig> ruleProvider;
+//    @Autowired
+//    @Qualifier("clusterClientConfigNacosPublisher")
+//    private DynamicRulePublisher<ClusterClientConfig> rulePublisher;
     @Autowired
     private AppManagement appManagement;
 
@@ -83,6 +94,8 @@ public class ClusterConfigController {
                         if (res != null) {
                             return res;
                         }
+//                        rulePublisher.publish(data.getApp(),data.getClientConfig());
+//                        //todo remove and add modifyClusterMode
                         clusterConfigService.modifyClusterClientConfig(data).get();
                         return Result.ofSuccess(true);
                     case ClusterStateManager.CLUSTER_SERVER:
@@ -91,6 +104,8 @@ public class ClusterConfigController {
                         if (r != null) {
                             return r;
                         }
+//                        rulePublisher.publish(d.getApp(),d.getClientConfig());
+//                        //todo remove and add modifyClusterMode
                         // TODO: bad design here, should refactor!
                         clusterConfigService.modifyClusterServerConfig(d).get();
                         return Result.ofSuccess(true);

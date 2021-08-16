@@ -18,6 +18,7 @@ package com.alibaba.csp.sentinel.dashboard.rule.nacos;
 import com.alibaba.csp.sentinel.dashboard.datasource.entity.gateway.ApiDefinitionEntity;
 import com.alibaba.csp.sentinel.dashboard.datasource.entity.gateway.GatewayFlowRuleEntity;
 import com.alibaba.csp.sentinel.dashboard.datasource.entity.rule.*;
+import com.alibaba.csp.sentinel.dashboard.domain.cluster.config.ClusterClientConfig;
 import com.alibaba.csp.sentinel.datasource.Converter;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.nacos.api.config.ConfigFactory;
@@ -101,6 +102,15 @@ public class NacosConfig {
     @Bean
     public Converter<String, List<ApiDefinitionEntity>> apiDefinitionEntityDecoder() {
         return s -> JSON.parseArray(s, ApiDefinitionEntity.class);
+    }
+    @Bean
+    public Converter<ClusterClientConfig, String> clusterClientConfigEncoder() {
+        return JSON::toJSONString;
+    }
+
+    @Bean
+    public Converter<String,ClusterClientConfig> clusterClientConfigDecoder() {
+        return s -> JSON.parseObject(s, ClusterClientConfig.class);
     }
 
 
